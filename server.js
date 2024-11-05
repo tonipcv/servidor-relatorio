@@ -95,8 +95,44 @@ app.get('/health', async (req, res) => {
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 
-app.listen(PORT, HOST, () => {
+const server = app.listen(PORT, HOST, () => {
+    console.log('----------------------------------------');
     console.log(`Server running on ${HOST}:${PORT}`);
-    console.log('Database URL:', process.env.DATABASE_URL);
     console.log('Environment:', process.env.NODE_ENV);
+    console.log('Database URL:', process.env.DATABASE_URL.split('@')[1]); // Log seguro da URL
+    console.log('----------------------------------------');
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('SIGTERM signal received: closing HTTP server');
+    server.close(() => {
+        console.log('HTTP server closed');
+        // Fechar a conexão com o banco de dados
+        pool.end(() => {
+            console.log('Database connection closed');
+            process.exit(0);
+        });
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('SIGINT signal received: closing HTTP server');
+    server.close(() => {
+        console.log('HTTP server closed');
+        // Fechar a conexão com o banco de dados
+        pool.end(() => {
+            console.log('Database connection closed');
+            process.exit(0);
+        });
+    });
+});
+
+// Adicionar handler para erros não tratados
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
 });
