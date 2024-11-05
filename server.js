@@ -1,9 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const pool = require('./database');
 const app = express();
 
-// Configuração mais flexível do CORS
+// Configuração do CORS
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -14,10 +15,13 @@ app.use(express.json());
 
 // Rota para obter todos os trades
 app.get('/trades', async (req, res) => {
+    console.log('GET /trades - Iniciando requisição');
     try {
         const result = await pool.query('SELECT * FROM trade');
+        console.log('GET /trades - Dados recuperados:', result.rows);
         res.json(result.rows);
     } catch (error) {
+        console.error('GET /trades - Erro:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -76,10 +80,23 @@ app.delete('/trades/:id', async (req, res) => {
     }
 });
 
+// Rota para verificar a saúde do banco de dados
+app.get('/health', async (req, res) => {
+    try {
+        await pool.query('SELECT 1');
+        res.json({ status: 'ok', message: 'Database connection successful' });
+    } catch (error) {
+        console.error('Database connection error:', error);
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+});
+
 // Iniciar o servidor
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 
 app.listen(PORT, HOST, () => {
     console.log(`Server running on ${HOST}:${PORT}`);
+    console.log('Database URL:', process.env.DATABASE_URL);
+    console.log('Environment:', process.env.NODE_ENV);
 });
