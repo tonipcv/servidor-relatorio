@@ -13,6 +13,17 @@ app.use(cors({
 
 app.use(express.json());
 
+// Rota para verificar a saúde do banco de dados
+app.get('/health', async (req, res) => {
+    try {
+        await pool.query('SELECT 1');
+        res.json({ status: 'ok', message: 'Database connection successful' });
+    } catch (error) {
+        console.error('Database connection error:', error);
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+});
+
 // Rota para obter todos os trades
 app.get('/trades', async (req, res) => {
     console.log('GET /trades - Iniciando requisição');
@@ -77,17 +88,6 @@ app.delete('/trades/:id', async (req, res) => {
         res.json({ message: 'Trade deleted successfully' });
     } catch (error) {
         res.status(500).json({ error: error.message });
-    }
-});
-
-// Rota para verificar a saúde do banco de dados
-app.get('/health', async (req, res) => {
-    try {
-        await pool.query('SELECT 1');
-        res.json({ status: 'ok', message: 'Database connection successful' });
-    } catch (error) {
-        console.error('Database connection error:', error);
-        res.status(500).json({ status: 'error', message: error.message });
     }
 });
 
