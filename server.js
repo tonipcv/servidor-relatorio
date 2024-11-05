@@ -1,6 +1,14 @@
 const express = require('express');
-const pool = require('./database'); // Assumindo que você tenha configurado a conexão no arquivo database.js
+const cors = require('cors');
+const pool = require('./database');
 const app = express();
+
+// Configuração mais flexível do CORS
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.use(express.json());
 
@@ -70,6 +78,8 @@ app.delete('/trades/:id', async (req, res) => {
 
 // Iniciar o servidor
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+const HOST = process.env.HOST || '0.0.0.0';
+
+app.listen(PORT, HOST, () => {
+    console.log(`Server running on ${HOST}:${PORT}`);
 });
